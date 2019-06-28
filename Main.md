@@ -1,16 +1,24 @@
 //Remote-car
 //Remote car with bluetooth comunication and the mian is arduino
 
-#define motor_1L1 = 2;
-#define motor_1L2 = 3;
-#define motor_1R1 = 4;
-#define motor_1R2 = 5;
-#define motor_2L1 = 6;
-#define motor_2L2 = 7;
-#define motor_2R1 = 8;
-#define motor_2R2 = 9;
-#define led_izq = 10;
-#define led_der = 11;
+#include <NewPing.h>
+
+#define motor_1L1 2
+#define motor_1L2 3
+#define motor_1R1 4
+#define motor_1R2 5
+#define motor_2L1 6
+#define motor_2L2 7
+#define motor_2R1 8
+#define motor_2R2 9
+#define led_izq 10
+#define led_der 11
+#define TRIGGER_PIN 12
+#define ECHO_PIN 13
+#define MAX_DISTANCE 200
+
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
+
 
 void setup() {
   Serial.begin(9600);
@@ -28,8 +36,8 @@ void setup() {
 
 void loop() {
   if (Serial.available() >  0){
-    int valor = 0;
-    switch (valor){
+    int valor = Serial.read();
+    switch (Serial.read()){
       case 1:
         Fordward();
         break;
@@ -42,11 +50,17 @@ void loop() {
        case 4:
         move_Right();
         break;
+       default:
+        stopMove();
+        break;
     }
+  } else {
+    stopMove();
   }
 }
 
 void Fordward(){
+  Distance();
   digitalWrite(motor_1L1, HIGH); 
   digitalWrite(motor_1L2, LOW);
   digitalWrite(motor_1R1, HIGH);
@@ -94,4 +108,31 @@ void move_Right(){
   digitalWrite(motor_2R2, LOW);
   digitalWrite(led_der, HIGH);
   Serial.print("Girando a la derecha...");
+}
+
+void Distance(){
+  delay(1000);
+  int uS = sonar.ping_median();
+  int calc = (uS / US_ROUNDTRIP_CM);
+  Serial.print("Distancia: ");
+  Serial.print(calc);
+  Serial.println("cm");
+  if (calc < 5){
+    stopMove();
+    do{
+      Backward();
+    }while (calc < 8);
+  }
+}
+
+void stopMove(){
+  digitalWrite(motor_1L1, LOW);
+  digitalWrite(motor_1L2, LOW);
+  digitalWrite(motor_1R1, LOW);
+  digitalWrite(motor_1R2, LOW);
+  digitalWrite(motor_2L1, LOW);
+  digitalWrite(motor_2L2, LOW);
+  digitalWrite(motor_2R1, LOW);
+  digitalWrite(motor_2R2, LOW);
+  //Serial.print("No hay dato, no me muevo...");
 }
