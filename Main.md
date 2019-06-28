@@ -37,7 +37,7 @@ void setup() {
 void loop() {
   if (Serial.available() >  0){
     int valor = Serial.read();
-    switch (Serial.read()){
+    switch (Valor){
       case 1:
         Fordward();
         break;
